@@ -48,15 +48,20 @@ namespace CurrencyConvertor.AppServices
             string convertedAmount = "0";
             try
             {
+                //url for live currency conversion api at http://fx.currencysystem.com
                 string url = string.Format("http://fx.currencysystem.com/webservices/CurrencyServer4.asmx/ConvertToNum?licenseKey=&fromCurrency="+ fromCurrency.ToUpper() + "&toCurrency="+ toCurrency.ToUpper() + "&amount="+ amount +"&rounding=true&date=&type=");
+                //make the request
                 WebRequest request = WebRequest.Create(url);
+                //get and read response from request
                 StreamReader streamReader = new StreamReader(request.GetResponse().GetResponseStream(), System.Text.Encoding.UTF8);
                 string result = streamReader.ReadToEnd();
+                streamReader.Close();
+                //get the xml data from response
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(result);
 
                 currency =  decimal.Parse(doc.InnerText);
-                
+                // round converted currency to two decimal places
                 convertedAmount = currency.ToString("0.00");
             }
             catch (Exception ex)
