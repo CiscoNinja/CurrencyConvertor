@@ -8,6 +8,8 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -28,26 +30,34 @@ namespace CurrencyConvertor.AppServices
         {
 
         }
-        public async Task<Decimal> Convert(decimal amount, string fromCurrency, string toCurrency)
+        public async Task<string> Convert(decimal amount, string fromCurrency, string toCurrency)
         {
             var result = ConvertCurrency(amount, fromCurrency, toCurrency);
             return result;
         }
-        public static string CurrencyConvert(decimal amount, string fromCurrency, string toCurrency)
+
+        public async Task<List<string>> GetCurrencies()
+        {
+            var result = GetAvailbleCurrencies();
+            return result;
+        }
+
+        public static string ConvertCurrency(decimal amount, string fromCurrency, string toCurrency)
         {
             decimal currency = 0;
             string convertedAmount = "0";
             try
             {
-                string url = string.Format("https://www.google.com/finance/converter?a={2}&from={0}&to={1}", fromCurrency.ToUpper(), toCurrency.ToUpper(), amount);
+                string url = string.Format("http://fx.currencysystem.com/webservices/CurrencyServer4.asmx/ConvertToNum?licenseKey=&fromCurrency="+ fromCurrency.ToUpper() + "&toCurrency="+ toCurrency.ToUpper() + "&amount="+ amount +"&rounding=true&date=&type=");
                 WebRequest request = WebRequest.Create(url);
-                StreamReader streamReader = new StreamReader(request.GetResponse().GetResponseStream(), System.Text.Encoding.ASCII);
-                string result = Regex.Matches(streamReader.ReadToEnd(), "([^<]+)")[0].Groups[1].Value;
-                string rs = new Regex(@"^\D*?((-?(\d+(\.\d+)?))|(-?\.\d+)).*").Match(result).Groups[1].Value;
-                if (decimal.TryParse((new Regex(@"^\D*?((-?(\d+(\.\d+)?))|(-?\.\d+)).*").Match(result).Groups[1].Value), out currency))
-                {
-                    convertedAmount = currency.ToString("0.00");
-                }
+                StreamReader streamReader = new StreamReader(request.GetResponse().GetResponseStream(), System.Text.Encoding.UTF8);
+                string result = streamReader.ReadToEnd();
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(result);
+
+                currency =  decimal.Parse(doc.InnerText);
+                
+                convertedAmount = currency.ToString("0.00");
             }
             catch (Exception ex)
             {
@@ -56,24 +66,67 @@ namespace CurrencyConvertor.AppServices
             return convertedAmount;
         }
 
-        //[WebMethod]
-        public static decimal ConvertCurrency(decimal amount, string fromCurrency, string toCurrency)
+        public static List<string> GetAvailbleCurrencies()
         {
-            WebClient client = new WebClient();
-            Stream response = client.OpenRead(string.Format("http://finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s={0}{1}=X", fromCurrency.ToUpper(), toCurrency.ToUpper()));
-            StreamReader reader = new StreamReader(response);
-            string yahooResponse = reader.ReadLine();
-            response.Close();
-            if (!string.IsNullOrWhiteSpace(yahooResponse))
+            var currencies = new List<string>();
+            try
             {
-                string[] values = Regex.Split(yahooResponse, ",");
-                if (values.Length > 0)
-                {
-                    decimal rate = System.Convert.ToDecimal(values[1]);
-                    return rate * amount;
-                }
+                string url = string.Format("http://fx.currencysystem.com//webservices/CurrencyServer4.asmx/Currencies?licenseKey=");
+                WebRequest request = WebRequest.Create(url);
+                StreamReader streamReader = new StreamReader(request.GetResponse().GetResponseStream(), System.Text.Encoding.UTF8);
+                string result = streamReader.ReadToEnd();
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(result);
+
+                currencies = doc.InnerText.Split(";").ToList();
+
             }
-            return 0;
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return currencies;
         }
+
+
+        ////[WebMethod]
+        //public static decimal ConvertCurrency(decimal amount, string fromCurrency, string toCurrency)
+        //{
+        //    WebClient client = new WebClient();
+        //    Stream response = client.OpenRead(string.Format("http://finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s={0}{1}=X", fromCurrency.ToUpper(), toCurrency.ToUpper()));
+        //    StreamReader reader = new StreamReader(response);
+        //    string yahooResponse = reader.ReadLine();
+        //    response.Close();
+        //    if (!string.IsNullOrWhiteSpace(yahooResponse))
+        //    {
+        //        string[] values = Regex.Split(yahooResponse, ",");
+        //        if (values.Length > 0)
+        //        {
+        //            decimal rate = System.Convert.ToDecimal(values[1]);
+        //            return rate * amount;
+        //        }
+        //    }
+        //    return 0;
+        //}
+
+        ////Stream response = client.OpenRead(string.Format("http://fx.currencysystem.com/webservices/CurrencyServer4.asmx/ConvertToNum?licenseKey=&fromCurrency=USD&toCurrency=GHS&amount=1&rounding=true&date=&type="));
+        //public static decimal ConvertAmount(decimal amount, string fromCurrency, string toCurrency)
+        //{
+        //    WebClient client = new WebClient();
+        //    Stream response = client.OpenRead(string.Format("http://finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s={0}{1}=X", fromCurrency.ToUpper(), toCurrency.ToUpper()));
+        //    StreamReader reader = new StreamReader(response);
+        //    string yahooResponse = reader.ReadLine();
+        //    response.Close();
+        //    if (!string.IsNullOrWhiteSpace(yahooResponse))
+        //    {
+        //        string[] values = Regex.Split(yahooResponse, ",");
+        //        if (values.Length > 0)
+        //        {
+        //            decimal rate = System.Convert.ToDecimal(values[1]);
+        //            return rate * amount;
+        //        }
+        //    }
+        //    return 0;
+        //}
     }
 }

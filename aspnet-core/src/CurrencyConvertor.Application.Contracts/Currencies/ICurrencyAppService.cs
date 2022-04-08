@@ -15,6 +15,7 @@ namespace CurrencyConvertor.Currencies
             CreateUpdateCurrencyDto,
             CurrencyDto>
     {
-        Task<decimal> Convert(decimal amount, string fromCurrency, string toCurrency);
+        Task<string> Convert(decimal amount, string fromCurrency, string toCurrency);
+        Task<List<string>> GetCurrencies();
     }
 }
