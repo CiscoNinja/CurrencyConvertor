@@ -15,7 +15,7 @@ CurrencyConvertor How to run
 5. set CurrencyConvertor.HttpApi.Host as the startup project and run the app
 
 test the currency APIs using the swagger interface. 
-enter any of the currency pairs below to test
+enter any of the currency pairs below to in the Convert API to test
 
 Available Currencies
 
