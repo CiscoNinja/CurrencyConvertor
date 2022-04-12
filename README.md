@@ -27,4 +27,5 @@ Audit logs are saved in the ABPAuditLogs and ABPAuditLogActions tables
 
 
 username : admin
+
 password : 1q2w3e*
