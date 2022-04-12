@@ -24,3 +24,7 @@ SRD;THB;TMT;TND;TRY;TTD;TWD;TZS;UAH;UGX;USD;UYU;UZS;VND;XAF;XCD;XDR;XOF;XPF;YER;
 
 
 Audit logs are saved in the ABPAuditLogs and ABPAuditLogActions tables
+
+
+username : admin
+password : 1q2w3e*
